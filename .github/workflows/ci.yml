@@ -19,7 +19,7 @@ jobs:
       with:
         command: fmt
         args: --verbose --all -- --check
-  
+
   # For each chip, build and lint the main library
   clippy:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
     - uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --verbose --features __log --target thumbv7em-none-eabihf -- -D warnings
+        args: --verbose --features __log_events --target thumbv7em-none-eabihf -- -D warnings
         name: Lint the library
 
   # Run unit and documentation tests for a chip

@@ -32,10 +32,10 @@ cargo build --target thumbv7em-none-eabihf
 To run **unit tests**, change `cargo build` to `cargo test` in the above
 examples. These tests run on your host system.
 
-To **debug** the library, enable the internal `__log` feature. The feature
-enables the library's internal [`log`](https://crates.io/crates/log) hooks.
-Then, initialize your logger of choice in your program. You may also need to
-configure the maximum log level as a feature on the `log` crate.
+To **debug** the library, enable the internal `__log_events` feature. The feature
+enables log events to be produced by the `imxrt_usbd::log_events::next()` method.
+This method is non-blocking and lock-free and hence should have almost no impact
+on the timing of the `poll()` method, as long as its priority is high enough.
 
 To test on **hardware**, refer to the hardware examples maintained in the
 [imxrt-hal project](https://github.com/imxrt-rs/imxrt-hal). Those examples
