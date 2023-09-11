@@ -161,7 +161,7 @@ impl Driver {
         // See the "quirk" note in the UsbBus impl. We're using USBADRA to let
         // the hardware set the address before the status phase.
         ral::write_reg!(ral::usb, self.usb, DEVICEADDR, USBADR: address as u32, USBADRA: 1);
-        debug_event!(SetAddress(address));
+        log_event!(SetAddress(address));
     }
 
     pub fn attach(&mut self) {
@@ -169,7 +169,7 @@ impl Driver {
     }
 
     pub fn bus_reset(&mut self) {
-        debug_event!(Reset);
+        log_event!(Reset);
         ral::modify_reg!(ral::usb, self.usb, ENDPTSTAT, |endptstat| endptstat);
 
         ral::modify_reg!(ral::usb, self.usb, ENDPTCOMPLETE, |endptcomplete| {
@@ -201,7 +201,7 @@ impl Driver {
     pub fn ctrl0_read(&mut self, buffer: &mut [u8]) -> Result<usize, UsbError> {
         let ctrl_out = self.ep_allocator.endpoint_mut(ctrl_ep0_out()).unwrap();
         if ctrl_out.has_setup(&self.usb) && buffer.len() >= 8 {
-            debug_event!(Ep0OutSetup);
+            log_event!(Ep0OutSetup);
             let setup = ctrl_out.read_setup(&self.usb);
             buffer[..8].copy_from_slice(&setup.to_le_bytes());
 
@@ -239,7 +239,7 @@ impl Driver {
     /// Panics if EP0 IN isn't allocated, or if EP0 OUT isn't allocated.
     pub fn ctrl0_write(&mut self, buffer: &[u8]) -> Result<usize, UsbError> {
         let ctrl_in = self.ep_allocator.endpoint_mut(ctrl_ep0_in()).unwrap();
-        debug_event!(EpIn { len: buffer.len() });
+        log_event!(EpIn { len: buffer.len() });
         ctrl_in.check_errors()?;
 
         if ctrl_in.is_primed(&self.usb) {
@@ -355,7 +355,7 @@ impl Driver {
             .allocate_endpoint(addr, buffer, kind)
             .unwrap();
 
-        debug_event!(AllocEp(addr.index(), addr.direction(), kind));
+        log_event!(AllocEp(addr.index(), addr.direction(), kind));
     }
 
     /// Enable all non-zero endpoints
@@ -389,15 +389,15 @@ impl Driver {
         let usbsts = ral::read_reg!(ral::usb, self.usb, USBSTS);
         use ral::usb::USBSTS;
 
-        debug_event!(Poll(usbsts));
+        log_event!(Poll(usbsts));
 
         if usbsts & USBSTS::URI::mask != 0 {
-            debug_event!(PollURI);
+            log_event!(PollURI);
             ral::write_reg!(ral::usb, self.usb, USBSTS, URI: 1);
             self.initialize_endpoints();
             PollResult::Reset
         } else if usbsts & USBSTS::PCI::mask != 0 {
-            debug_event!(PollPCI);
+            log_event!(PollPCI);
             ral::write_reg!(ral::usb, self.usb, USBSTS, PCI: 1);
             self.enable_endpoints();
             self.prime_endpoints();
@@ -414,7 +414,7 @@ impl Driver {
 
             let ep_setup = ral::read_reg!(ral::usb, self.usb, ENDPTSETUPSTAT) as u16;
 
-            debug_event!(PollUI {
+            log_event!(PollUI {
                 ep_out: self.ep_out,
                 ep_in_complete: ep_in_complete as u16,
                 ep_setup,
@@ -426,11 +426,11 @@ impl Driver {
                 ep_setup,
             }
         } else if usbsts & USBSTS::SLI::mask != 0 {
-            debug_event!(PollSLI);
+            log_event!(PollSLI);
             ral::write_reg!(ral::usb, self.usb, USBSTS, SLI: 1);
             PollResult::Suspend
         } else {
-            debug_event!(PollNone);
+            log_event!(PollNone);
             PollResult::None
         }
     }

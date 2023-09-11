@@ -19,7 +19,7 @@
 #![no_std]
 
 #[macro_use]
-mod debug_events;
+pub mod log_events;
 
 mod buffer;
 mod bus;

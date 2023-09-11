@@ -7,7 +7,7 @@
 /// Log events
 #[cfg(feature = "__log_events")]
 #[derive(Debug)]
-pub enum DebugEvent {
+pub enum LogEvent {
     EpIn {
         len: usize,
     },
@@ -42,21 +42,21 @@ pub enum DebugEvent {
 
 #[cfg(not(feature = "__log_events"))]
 #[derive(Debug)]
-pub enum DebugEvent {}
+pub enum LogEvent {}
 
 #[cfg(feature = "__log_events")]
-pub(crate) static EVENTS: heapless::mpmc::Q64<DebugEvent> = heapless::mpmc::MpMcQueue::new();
+pub(crate) static EVENTS: heapless::mpmc::Q64<LogEvent> = heapless::mpmc::MpMcQueue::new();
 
-pub fn next() -> Option<DebugEvent> {
+pub fn next() -> Option<LogEvent> {
     None
 }
 
-macro_rules! debug_event {
+macro_rules! log_event {
     ($val: expr) => {
         #[cfg(feature = "__log_events")]
         {
-            use $crate::debug_events::DebugEvent::*;
-            $crate::debug_events::EVENTS.enqueue($val).unwrap();
+            use $crate::log_events::LogEvent::*;
+            $crate::log_events::EVENTS.enqueue($val).unwrap();
         }
     };
 }

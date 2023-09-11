@@ -201,6 +201,7 @@ impl BusAdapter {
             cs,
         }
     }
+
     /// Enable (`true`) or disable (`false`) interrupts for this USB peripheral
     ///
     /// The interrupt causes are implementation specific. To handle the interrupt,
@@ -248,6 +249,18 @@ impl BusAdapter {
         } else {
             interrupt::free(with_cs)
         }
+    }
+
+    /// Apply device configurations, and perform other post-configuration actions
+    ///
+    /// You must invoke this once, and only after your device has been configured. If
+    /// the device is reset and reconfigured, you must invoke `configure()` again. See
+    /// the top-level example for how this could be achieved.
+    pub fn configure(&self) {
+        self.with_usb_mut(|usb| {
+            //usb.on_configured();
+            //debug!("CONFIGURED");
+        });
     }
 
     /// Acquire one of the GPT timer instances.
@@ -330,7 +343,7 @@ impl UsbBus for BusAdapter {
                 return Err(usb_device::UsbError::InvalidEndpoint);
             }
 
-            // Keep map_err if debug_event! is compiled out.
+            // Keep map_err if log_event! is compiled out.
             #[allow(clippy::map_identity)]
             let written = if ep_addr.index() == 0 {
                 usb.ctrl0_write(buf)
@@ -338,7 +351,7 @@ impl UsbBus for BusAdapter {
                 usb.ep_write(buf, ep_addr)
             }
             .map_err(|status| {
-                debug_event!(EpError {
+                log_event!(EpError {
                     index: ep_addr.index(),
                     direction: ep_addr.direction(),
                     status: unsafe {
@@ -359,7 +372,7 @@ impl UsbBus for BusAdapter {
                 return Err(usb_device::UsbError::InvalidEndpoint);
             }
 
-            // Keep map_err if debug_event! is compiled out.
+            // Keep map_err if log_event! is compiled out.
             #[allow(clippy::map_identity)]
             let read = if ep_addr.index() == 0 {
                 usb.ctrl0_read(buf)
@@ -367,7 +380,7 @@ impl UsbBus for BusAdapter {
                 usb.ep_read(buf, ep_addr)
             }
             .map_err(|status| {
-                debug_event!(EpError {
+                log_event!(EpError {
                     index: ep_addr.index(),
                     direction: ep_addr.direction(),
                     status: unsafe {
